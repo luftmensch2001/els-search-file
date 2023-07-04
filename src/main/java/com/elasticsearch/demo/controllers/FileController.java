@@ -33,7 +33,12 @@ public class FileController {
     }
 
     @GetMapping("/search")
-    public List<FileDTO> searchByContent(@RequestParam String content) {
-        return fileService.findByContent(content);
+    public ResponseEntity<?> searchByContent(@RequestParam String content) {
+        List<FileDTO> result = fileService.findByContent(content);
+        if (result.size() > 0) {
+            return ResponseEntity.ok().body(result);
+        } else {
+            return ResponseEntity.notFound().build();
+        }
     }
 }
