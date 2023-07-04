@@ -1,7 +1,9 @@
 package com.elasticsearch.demo.servicesImpl;
 
 import com.elasticsearch.demo.DTO.FileDTO;
+import com.elasticsearch.demo.models.FileElsEntity;
 import com.elasticsearch.demo.models.FileEntity;
+import com.elasticsearch.demo.repositories.FileElsRepository;
 import com.elasticsearch.demo.repositories.FileRepository;
 import com.elasticsearch.demo.services.FileService;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
@@ -19,11 +21,14 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class FileServiceImpl implements FileService {
     @Autowired
     private FileRepository fileRepository;
+    @Autowired
+    private FileElsRepository fileElsRepository;
 
     public final String WORD_FILE_TYPE = "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
 
@@ -35,17 +40,20 @@ public class FileServiceImpl implements FileService {
     @Override
     public Pair<Boolean, Object> uploadFile(MultipartFile file) {
         try {
-//            Get info and content of file
             String fileName = StringUtils.cleanPath(file.getOriginalFilename());
             String fileType = file.getContentType();
 //            Check file type
             if (!fileType.equals(WORD_FILE_TYPE)) {
                 return Pair.of(false, "Invalid file type");
             }
-            String fileContent = getFileContent(fileName, file);
-            FileEntity newFile = new FileEntity(fileName, fileType, fileContent);
-//            Store file
+//            Save file into database
+            FileEntity newFile = new FileEntity(fileName, fileType, file.getBytes());
             fileRepository.save(newFile);
+//            Save file info into els
+            String fileContent = getFileContent(fileName, file);
+            FileElsEntity newFileEls = new FileElsEntity(newFile.getId(), fileName, fileType, fileContent);
+            fileElsRepository.save(newFileEls);
+//            Return success
             return Pair.of(true, newFile);
         } catch (Exception e) {
             System.out.println(e);
@@ -54,12 +62,30 @@ public class FileServiceImpl implements FileService {
     }
 
     @Override
+    public Pair<Boolean, Object> downloadFile(Integer id) {
+        Optional<FileEntity> file = fileRepository.findById(id);
+        if (!file.isPresent())
+            return Pair.of(false, "File not found");
+        else
+            return Pair.of(true, file.get());
+    }
+
+    @Override
+    public Pair<Boolean, Object> findById(Integer id) {
+        Optional<FileEntity> file = fileRepository.findById(id);
+        if (file.isPresent())
+            return Pair.of(true, file.get());
+        else
+            return Pair.of(false, "File not found");
+    }
+
+    @Override
     public List<FileDTO> findByContent(String content) {
-        List<FileEntity> files = fileRepository.findByContent(content);
+        List<FileElsEntity> files = fileElsRepository.findByContent(content);
         List<FileDTO> result = new ArrayList<>();
 
         for (int i = 0; i<files.size(); i++) {
-            FileEntity file = files.get(i);
+            FileElsEntity file = files.get(i);
             result.add(new FileDTO(file.getId(), file.getName(), file.getType()));
         }
 
@@ -80,5 +106,11 @@ public class FileServiceImpl implements FileService {
         }
         fis.close();
         return content.toString();
+    }
+
+    @Override
+    public void deleteFile(Integer id) {
+        fileRepository.deleteById(id);
+        fileElsRepository.deleteById(id);
     }
 }

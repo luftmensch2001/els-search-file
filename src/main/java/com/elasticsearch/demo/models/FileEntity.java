@@ -1,29 +1,42 @@
 package com.elasticsearch.demo.models;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import org.springframework.data.annotation.Id;
-import org.springframework.data.elasticsearch.annotations.Document;
+import jakarta.persistence.*;
+import lombok.*;
+
+import java.time.LocalDateTime;
 
 @Data
-@AllArgsConstructor
+@Entity
 @NoArgsConstructor
-@Document(indexName = "file")
+@AllArgsConstructor
+@Table(name = "file")
 public class FileEntity {
     @Id
-    public String id;
+    @Column(name = "id")
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    public Integer id;
 
+    @Column(name = "name")
     public String name;
 
+    @Column(name = "type")
     public String type;
 
-    public String content;
+    @Lob
+    @Column(name = "data", columnDefinition = "LONGBLOB")
+    public byte[] data;
 
+    @Column(name = "created_at")
+    private LocalDateTime createAt;
 
-    public FileEntity(String name, String type, String content) {
+    @PrePersist
+    public void prePersist() {
+        this.createAt = LocalDateTime.now();
+    }
+
+    public FileEntity(String name, String type, byte[] data) {
         this.name = name;
         this.type = type;
-        this.content = content;
+        this.data = data;
     }
 }

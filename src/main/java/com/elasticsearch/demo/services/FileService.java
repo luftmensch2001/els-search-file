@@ -13,4 +13,10 @@ public interface FileService {
     public Pair<Boolean, Object> uploadFile(MultipartFile file);
 
     public List<FileDTO> findByContent(String content);
+
+    public Pair<Boolean, Object> downloadFile(Integer id);
+
+    public Pair<Boolean, Object> findById(Integer id);
+
+    public void deleteFile(Integer id);
 }

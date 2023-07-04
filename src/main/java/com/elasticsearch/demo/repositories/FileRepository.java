@@ -1,15 +1,11 @@
 package com.elasticsearch.demo.repositories;
 
 import com.elasticsearch.demo.models.FileEntity;
-import org.springframework.data.elasticsearch.annotations.Query;
-import org.springframework.data.elasticsearch.repository.ElasticsearchRepository;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.stereotype.Repository;
 
-import java.util.List;
-
-
 @Repository
-public interface FileRepository extends ElasticsearchRepository<FileEntity, Long> {
-    @Query("{\"bool\": {\"must\": [{\"match\": {\"content\": \"?0\"}}]}}")
-    List<FileEntity> findByContent(String content);
+@EnableJpaRepositories
+public interface FileRepository extends JpaRepository<FileEntity, Integer> {
 }

@@ -8,7 +8,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class FileDTO {
-    public String id;
+    public Integer id;
 
     public String name;
 
