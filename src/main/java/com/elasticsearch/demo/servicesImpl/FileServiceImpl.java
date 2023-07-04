@@ -49,7 +49,7 @@ public class FileServiceImpl implements FileService {
             return Pair.of(true, newFile);
         } catch (Exception e) {
             System.out.println(e);
-            throw new RuntimeException("Upload file failed");
+            return Pair.of(false, "Upload file failed");
         }
     }
 
